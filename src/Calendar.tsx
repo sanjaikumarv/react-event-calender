@@ -1,5 +1,4 @@
 "use client"
-
 import { eachDayOfInterval, format, getDay, getMonth, isToday, getYear, isValid, parseISO } from "date-fns"
 import { useState } from "react"
 import MonthFilter from "./MonthFilter"
