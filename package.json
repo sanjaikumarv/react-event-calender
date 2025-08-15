@@ -9,6 +9,14 @@
   ],
   "description": "React Event Calendar is a lightweight and customizable calendar component for displaying and managing events in React applications. It supports multiple views, event highlighting, and flexible styling, making it perfect for scheduling, booking, or planning tools.",
   "type": "module",
+  "keywords": [
+    "react",
+    "calendar",
+    "event calendar",
+    "react calendar",
+    "event management",
+    "scheduling"
+  ],
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build"
