@@ -1,6 +1,6 @@
 {
-  "name": "react-event-calendar",
-  "version": "1.0.0",
+  "name": "simple-calendar-react",
+  "version": "1.0.1",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",

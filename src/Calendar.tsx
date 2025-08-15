@@ -6,6 +6,7 @@ import MonthFilter from "./MonthFilter"
 import YearFilter from "./YearFilter"
 
 export type EventItem = {
+    [key: string]: string
     title: string
     startDate: string
     endDate: string

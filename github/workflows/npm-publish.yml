@@ -1,0 +1,29 @@
+name: Publish NPM Package
+
+on:
+  push:
+    branches:
+      - main 
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout code
+      - uses: actions/checkout@v4
+
+      # Step 2: Setup Node.js
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      # Step 3: Authenticate to NPM
+      - run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_CI_CD_TOKEN }}" > ~/.npmrc
+      
+      - run: npm version patch --no-git-tag-version
+
+      - run: npm run build
+      # Step 6: Publish package
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_CI_CD_TOKEN }}
