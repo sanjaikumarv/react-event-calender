@@ -6,10 +6,12 @@ import MonthFilter from "./MonthFilter"
 import YearFilter from "./YearFilter"
 
 export type EventItem = {
-    [key: string]: string
+    [key: string]: string | undefined
     title: string
     startDate: string
     endDate: string
+    date?: string | undefined,
+    description?: string | undefined
 }
 
 export type EventGroups = EventItem[][]
@@ -35,6 +37,16 @@ function getCurrentData(data: EventItem[], date: string) {
     return data?.find((e) => {
         const slicedStartDate = e?.startDate?.slice(0, 10)
         const slicedEndDate = e?.endDate?.slice(0, 10)
+        const cdate = e?.date?.slice(0, 10)
+        if (e?.date) {
+            return cdate === date
+        }
+        if (slicedStartDate && !e.endDate) {
+            return slicedStartDate === date
+        }
+        if (e.endDate) {
+            return slicedEndDate === date
+        }
         return date >= slicedStartDate && date <= slicedEndDate
     })
 }
