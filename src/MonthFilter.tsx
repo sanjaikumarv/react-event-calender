@@ -1,12 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { Dispatch, SetStateAction, useState } from "react"
 import { ChevronDownIcon } from "lucide-react"
 
 interface MonthFilterProps {
     label: string
     state: number
-    setState: (month: number) => void
+    setState: Dispatch<SetStateAction<number>>
     data: string[]
 }
 

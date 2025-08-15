@@ -20,7 +20,7 @@ export default function YearFilter({ label, state, setState, data }: YearFilterP
                 className="bg-white/20 hover:bg-white/30 backdrop-blur-sm px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 flex items-center gap-2 min-w-[100px] justify-between"
             >
                 <span>{state}</span>
-                <ChevronDownIcon className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                <ChevronDownIcon aria-hidden="true" className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
             </button>
 
             {isOpen && (
