@@ -21,7 +21,6 @@ jobs:
       - run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_CI_CD_TOKEN }}" > ~/.npmrc
       
       - run: npm version patch --no-git-tag-version
-
       - run: npm run build
       # Step 6: Publish package
       - run: npm publish

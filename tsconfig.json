@@ -10,8 +10,11 @@
     "skipLibCheck": true,
     "moduleResolution": "Node",
     "jsx": "react-jsx",
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "types": ["react", "react-dom"],
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx"]
 }
