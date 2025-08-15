@@ -4,13 +4,12 @@ import { Dispatch, SetStateAction, useState } from "react"
 import { ChevronDownIcon } from "lucide-react"
 
 interface MonthFilterProps {
-    label: string
     state: number
     setState: Dispatch<SetStateAction<number>>
     data: string[]
 }
 
-export default function MonthFilter({ label, state, setState, data }: MonthFilterProps) {
+export default function MonthFilter({ state, setState, data }: MonthFilterProps) {
     const [isOpen, setIsOpen] = useState(false)
 
     return (

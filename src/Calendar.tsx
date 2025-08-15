@@ -46,7 +46,7 @@ function parseDate(dateString: string): Date {
 
 export default function Calendar({
     onDateClick,
-    selectedDate,
+    selectedDate = new Date().toISOString().slice(0, 10),
     headings = [],
     headingColors = [],
     datas = [],
@@ -58,7 +58,7 @@ export default function Calendar({
     },
 }: {
     onDateClick: (date: string) => void
-    selectedDate: string
+    selectedDate?: string
     headings?: string[]
     headingColors?: string[]
     datas?: EventGroups
@@ -120,8 +120,8 @@ export default function Calendar({
                                 >
                                     Today
                                 </button>
-                                <MonthFilter label="Month" state={month} setState={setMonth} data={months} />
-                                <YearFilter label="Year" state={year} setState={setYear} data={yearFilterData} />
+                                <MonthFilter state={month} setState={setMonth} data={months} />
+                                <YearFilter state={year} setState={setYear} data={yearFilterData} />
                             </div>
                         </div>
                     </div>

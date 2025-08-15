@@ -1,16 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { Dispatch, SetStateAction, useState } from "react"
 import { ChevronDownIcon } from "lucide-react"
 
 interface YearFilterProps {
-    label: string
     state: number
-    setState: (year: number) => void
+    setState: Dispatch<SetStateAction<number>>
     data: number[]
 }
 
-export default function YearFilter({ label, state, setState, data }: YearFilterProps) {
+export default function YearFilter({ state, setState, data }: YearFilterProps) {
     const [isOpen, setIsOpen] = useState(false)
 
     return (
