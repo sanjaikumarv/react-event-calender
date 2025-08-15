@@ -19,11 +19,10 @@ jobs:
 
       # Step 3: Authenticate to NPM
       - run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_CI_CD_TOKEN }}" > ~/.npmrc
+      - run: npm version patch --no-git-tag-version
 
       - run: npm install
       - run: npm run build
-      - run: npm version patch --no-git-tag-version
-      # Step 6: Publish package
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_CI_CD_TOKEN }}
