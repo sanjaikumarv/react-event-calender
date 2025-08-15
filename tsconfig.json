@@ -11,7 +11,6 @@
     "moduleResolution": "Node",
     "jsx": "react-jsx",
     "allowSyntheticDefaultImports": true,
-    "types": ["react", "react-dom"],
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true
   },
