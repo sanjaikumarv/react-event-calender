@@ -164,13 +164,11 @@ function Calendar({
     if (dataType === "NESTED_ARRAY" && Array.isArray(data[0])) {
       (data as EventGroups).forEach((group, idx) => {
         const colorData = Object.values(headings)[idx];
-
         group.forEach((event) => {
           handleEventInsert(event, map, colorData);
         });
       });
     } else {
-      // FLAT ARRAY MODE
       (data as EventItem[]).forEach((event) => {
         const colorData = headings[event.type ?? ""] || {};
         handleEventInsert(event, map, colorData);
