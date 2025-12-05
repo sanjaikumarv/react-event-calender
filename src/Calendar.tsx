@@ -13,16 +13,22 @@ import { memo, useMemo, useState } from "react";
 import clsx from "clsx";
 import MonthFilter from "./MonthFilter";
 import YearFilter from "./YearFilter";
-import "./styles.css";
+
 export type EventItem = {
   [key: string]: string | undefined;
   title: string;
+  type?: string;
   startDate?: string;
   endDate?: string;
   date?: string;
   description?: string;
 };
 
+interface Heading {
+  title: string;
+  bgColor: string;
+  titleColor: string;
+}
 export type EventGroups = EventItem[][];
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -48,28 +54,44 @@ function parseDate(dateString: string): Date {
 
 function Calendar({
   onDateClick,
+  scheduledEvents = true,
+  categories = true,
+  dataType = "NESTED_ARRAY",
   selectedDate,
-  headings = [],
-  headingColors = [{ bgColor: "", titleColor: "" }],
+  headings = {},
   data = [],
   yearFilters = [],
-  bgColors = {
-    calendarHeadingColor: "",
-    selectedDateBorderColor: "",
+  styles = {
+    calendarHeadingBgColor: "",
     selectedDateBgColor: "",
+    border: "",
+    layout: "",
   },
+  buttonStyle,
+  monthFilterInputStyle,
+  yearFilterInputStyle,
 }: {
   onDateClick: (date: string) => void;
+  dataType?: "NESTED_ARRAY" | "ARRAY";
   selectedDate: string;
-  headings?: string[];
-  headingColors?: { bgColor: string; titleColor?: string }[];
-  data?: EventGroups;
-  yearFilters?: number[];
-  bgColors?: {
-    calendarHeadingColor?: string;
-    selectedDateBorderColor?: string;
-    selectedDateBgColor?: string;
+  categories?: boolean;
+  headings: {
+    [key: string]: Heading;
   };
+  scheduledEvents?: boolean;
+  data: EventGroups | EventItem[];
+  yearFilters?: number[];
+  styles?: {
+    calendarHeadingBgColor?: string;
+    selectedDateBgColor?: string;
+    border?: string;
+    layout?: string;
+    height?: string;
+    width?: string;
+  };
+  monthFilterInputStyle?: string;
+  yearFilterInputStyle?: string;
+  buttonStyle?: string;
 }) {
   const yearFilterData = useMemo(
     () =>
@@ -109,17 +131,44 @@ function Calendar({
     [firstDayOfMonth]
   );
 
-  const eventLookup = useMemo(() => {
+  const eventLookup = () => {
     const map: Record<string, EventItem[]> = {};
 
     if (!Array.isArray(data)) return map;
+    if (dataType === "NESTED_ARRAY") {
+      console.log("nested array");
+      data.forEach((group: EventItem[], idx: number) => {
+        const colorData = Object.values(headings)[idx];
+        group.forEach((event: EventItem) => {
+          if (event.date) {
+            const d = event.date.slice(0, 10);
+            map[d] = map[d] || [];
 
-    data.forEach((group) => {
-      group.forEach((event) => {
+            map[d].push({ ...event, ...colorData });
+          } else if (event.startDate && event.endDate) {
+            const start = event.startDate.slice(0, 10);
+            const end = event.endDate.slice(0, 10);
+
+            const range = eachDayOfInterval({
+              start: parseISO(start),
+              end: parseISO(end),
+            });
+
+            range.forEach((day) => {
+              const d = format(day, "yyyy-MM-dd");
+              map[d] = map[d] || [];
+              map[d].push({ ...event, ...colorData });
+            });
+          }
+        });
+      });
+    } else {
+      data.forEach((event: EventItem) => {
+        const colorData = headings[event.type];
         if (event.date) {
           const d = event.date.slice(0, 10);
           map[d] = map[d] || [];
-          map[d].push(event);
+          map[d].push({ ...event, ...colorData });
         } else if (event.startDate && event.endDate) {
           const start = event.startDate.slice(0, 10);
           const end = event.endDate.slice(0, 10);
@@ -132,36 +181,46 @@ function Calendar({
           range.forEach((day) => {
             const d = format(day, "yyyy-MM-dd");
             map[d] = map[d] || [];
-            map[d].push(event);
+            map[d].push({ ...event, ...colorData });
           });
         }
       });
-    });
-
+    }
     return map;
-  }, [data]);
+  };
 
   return (
-    <div className='grid grid-cols-1 xl:grid-cols-4 gap-8 p-6 min-h-screen'>
+    <div
+      className={clsx(
+        styles.layout || "grid grid-cols-1 xl:grid-cols-4 gap-8 p-6",
+        styles.height || "h-screen",
+        styles.width || "w-full"
+      )}>
       <div className='xl:col-span-3'>
-        <div className='bg-white rounded-2xl shadow-xl border-2 border-slate-200/60 overflow-hidden'>
+        <div
+          className={clsx(
+            "bg-white overflow-hidden",
+            styles.border ||
+              "border-2 border-slate-200/60 rounded-2xl shadow-xl"
+          )}>
           <div
             className={clsx(
               "text-white p-6",
-              bgColors.calendarHeadingColor ||
+              styles.calendarHeadingBgColor ||
                 "bg-linear-to-r from-blue-600 to-indigo-600"
             )}>
-            {headings.length > 0 && (
+            {Object.keys(headings).length > 0 && (
               <div className='flex flex-wrap justify-center gap-6 mb-6'>
-                {headings.map((h, idx) => (
-                  <div className='flex items-center gap-2' key={h}>
+                {Object.entries(headings).map(([key, value], idx) => (
+                  <div className='flex items-center gap-2' key={idx}>
                     <div
                       className={clsx(
                         "rounded-full w-3 h-3",
-                        headingColors[idx]?.bgColor || "bg-white/30"
+                        value.bgColor,
+                        value.titleColor
                       )}></div>
                     <span className='text-md font-medium text-white/90'>
-                      {h}
+                      {value.title}
                     </span>
                   </div>
                 ))}
@@ -175,7 +234,10 @@ function Calendar({
 
               <div className='flex flex-wrap items-center gap-3'>
                 <button
-                  className='bg-white/20 hover:bg-white/30 backdrop-blur-sm px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105'
+                  className={
+                    buttonStyle ||
+                    "bg-white/20 hover:bg-white/30 backdrop-blur-sm px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105"
+                  }
                   onClick={() => {
                     const today = new Date();
                     setMonth(getMonth(today));
@@ -184,8 +246,14 @@ function Calendar({
                   }}>
                   Today
                 </button>
-                <MonthFilter state={month} setState={setMonth} data={months} />
+                <MonthFilter
+                  monthFilterInputStyle={monthFilterInputStyle}
+                  state={month}
+                  setState={setMonth}
+                  data={months}
+                />
                 <YearFilter
+                  yearFilterInputStyle={yearFilterInputStyle}
                   state={year}
                   setState={setYear}
                   data={yearFilterData}
@@ -212,8 +280,7 @@ function Calendar({
 
               {daysInMonth.map((day, index) => {
                 const dateKey = format(day, "yyyy-MM-dd");
-                const eventsForDay = eventLookup[dateKey] || [];
-
+                const eventsForDay = eventLookup()[dateKey] || [];
                 return (
                   <div
                     key={index}
@@ -222,8 +289,7 @@ function Calendar({
                       "aspect-square bg-white rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-105 flex flex-col",
                       selectedDate === dateKey
                         ? `${
-                            bgColors.selectedDateBorderColor ||
-                            "ring-2 ring-blue-600"
+                            styles.selectedDateBgColor || "ring-2 ring-blue-600"
                           } bg-blue-50 shadow-lg`
                         : "hover:bg-slate-50"
                     )}>
@@ -232,7 +298,7 @@ function Calendar({
                         "text-sm font-medium mb-1 m-2 shrink-0",
                         isToday(day)
                           ? `${
-                              bgColors.selectedDateBgColor || "bg-blue-600"
+                              styles.selectedDateBgColor || "bg-blue-600"
                             } text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold`
                           : "text-slate-700"
                       )}>
@@ -245,8 +311,8 @@ function Calendar({
                         <DisplayCurrentData
                           key={idx}
                           event={ev}
-                          headingColor={headingColors[idx]?.bgColor || ""}
-                          titleColor={headingColors[idx]?.titleColor || ""}
+                          headingColor={ev.bgColor}
+                          titleColor={ev.titleColor}
                           date={dateKey}
                         />
                       ))}
@@ -259,45 +325,112 @@ function Calendar({
         </div>
       </div>
 
-      {/* Right Sidebar */}
       <div className='space-y-6'>
-        <div className='bg-white rounded-xl shadow-lg border border-slate-200/60 p-6'>
-          <h3 className='text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2'>
-            <div
-              className={clsx(
-                "w-2 h-2 rounded-full",
-                bgColors.selectedDateBorderColor || "bg-blue-500"
-              )}></div>
-            Selected Date
-          </h3>
-          <p className='text-slate-600 font-medium bg-slate-50 rounded-lg px-3 py-2'>
-            {format(parseDate(selectedDate), "EEEE, MMMM d, yyyy")}
-          </p>
-        </div>
-
-        {headings.length > 0 && (
+        {scheduledEvents && (
           <div className='bg-white rounded-xl shadow-lg border border-slate-200/60 p-6'>
-            <h3 className='text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2'>
-              <div className='w-2 h-2 bg-green-500 rounded-full'></div>
-              Event Categories
+            <h3 className='text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2'>
+              <div
+                className={clsx(
+                  "w-2 h-2 rounded-full",
+                  styles.selectedDateBgColor || "bg-blue-500"
+                )}></div>
+              Selected Date
             </h3>
-            <div className='space-y-3'>
-              {headings.map((heading, idx) => (
-                <div
-                  className='flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors'
-                  key={idx}>
+            <p className='text-slate-600 font-medium bg-slate-50 rounded-lg px-3 py-2'>
+              {format(parseDate(selectedDate), "EEEE, MMMM d, yyyy")}
+            </p>
+            {eventLookup()[selectedDate].length > 0 && (
+              <div>
+                <h3 className='text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2'>
                   <div
                     className={clsx(
-                      "w-4 h-4 rounded-full shadow-sm",
-                      headingColors[idx]?.bgColor
+                      "w-2 h-2 rounded-full",
+                      styles.selectedDateBgColor || "bg-blue-500"
                     )}></div>
-                  <span className='text-sm font-medium text-slate-700'>
-                    {heading}
-                  </span>
+                  Scheduled Events
+                </h3>
+                <div className='no-scrollbar max-h-[500px] space-y-5 overflow-y-auto'>
+                  {eventLookup()[selectedDate].map((event, idx) => {
+                    return (
+                      <div
+                        key={idx}
+                        className={clsx(
+                          event.bgColor,
+                          event.titleColor,
+                          "p-2 rounded-lg"
+                        )}>
+                        <p>
+                          <b>{event.title}</b>
+                        </p>
+                        {event.startDate && (
+                          <p>
+                            Start Date :
+                            <span className={clsx("p-2 rounded-lg ")}>
+                              {format(
+                                parseDate(event.startDate),
+                                "EEEE, MMMM d, yyyy"
+                              )}
+                            </span>
+                          </p>
+                        )}
+
+                        {event.endDate && (
+                          <p>
+                            End Date :
+                            <span className={clsx("p-2 rounded-lg ")}>
+                              {format(
+                                parseDate(event.endDate),
+                                "EEEE, MMMM d, yyyy"
+                              )}
+                            </span>
+                          </p>
+                        )}
+                        {event.date && (
+                          <p>
+                            Date :
+                            <span className={clsx("p-2 rounded-lg")}>
+                              {format(
+                                parseDate(event.date),
+                                "EEEE, MMMM d, yyyy"
+                              )}
+                            </span>
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
           </div>
+        )}
+        {categories && (
+          <>
+            {Object.keys(headings).length > 0 && (
+              <div className='bg-white rounded-xl shadow-lg border border-slate-200/60 p-6'>
+                <h3 className='text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2'>
+                  <div className='w-2 h-2 bg-green-500 rounded-full'></div>
+                  Categories
+                </h3>
+                <div className='space-y-3'>
+                  {Object.entries(headings).map(([key, value], idx) => (
+                    <div
+                      className='flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors'
+                      key={idx}>
+                      <div
+                        className={clsx(
+                          "w-4 h-4 rounded-full shadow-sm",
+                          value.bgColor
+                        )}></div>
+                      <span className='text-sm font-medium text-slate-700'>
+                        {value.title}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -326,12 +459,12 @@ const DisplayCurrentData = memo(function DisplayCurrentData({
   return (
     <div
       className={clsx(
-        "shadow-sm font-medium px-2 py-1 text-xs truncate hover:shadow-md transition-shadow",
+        "font-medium px-2 py-1 text-xs truncate hover:shadow-md transition-shadow",
         headingColor || "bg-slate-400",
         titleColor || "text-white",
-        startAndEndDateAreSame && "mx-2 rounded-md",
-        startSame && "ml-2 rounded-tl-md rounded-bl-md",
-        endSame && "mr-2 rounded-tr-md rounded-br-md"
+        startAndEndDateAreSame && "mx-2 rounded-lg",
+        startSame && "ml-2 rounded-tl-lg rounded-bl-lg",
+        endSame && "mr-2 rounded-tr-lg rounded-br-lg"
       )}
       title={event.title}>
       {event.title.length >= 8 ? `${event.title.slice(0, 8)}...` : event.title}
@@ -339,4 +472,4 @@ const DisplayCurrentData = memo(function DisplayCurrentData({
   );
 });
 
-export default memo(Calendar);
+export default Calendar;

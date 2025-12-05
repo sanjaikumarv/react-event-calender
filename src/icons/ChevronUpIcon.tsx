@@ -1,6 +1,6 @@
-import React, { memo } from "react";
+import React from "react";
 
-function ChevronUpIcon(props: React.SVGProps<SVGSVGElement>) {
+export function ChevronUpIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       xmlns='http://www.w3.org/2000/svg'
@@ -18,5 +18,3 @@ function ChevronUpIcon(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
-
-export default memo(ChevronUpIcon);

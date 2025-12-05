@@ -1,22 +1,33 @@
 "use client";
 
 import { Dispatch, SetStateAction, useState } from "react";
-import ChevronUpIcon from "./ChevronUpIcon";
+import clsx from "clsx";
+import { ChevronUpIcon } from "./icons";
 
 interface YearFilterProps {
   state: number;
   setState: Dispatch<SetStateAction<number>>;
   data: number[];
+  yearFilterInputStyle?: string;
 }
 
-export default function YearFilter({ state, setState, data }: YearFilterProps) {
+export default function YearFilter({
+  state,
+  setState,
+  data,
+  yearFilterInputStyle,
+}: YearFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className='relative'>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className='bg-white/20 hover:bg-white/30 backdrop-blur-sm px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 flex items-center gap-2 min-w-[100px] justify-between'>
+        className={clsx(
+          "transition-all flex items-center justify-between",
+          yearFilterInputStyle ||
+            "bg-white/20 duration-200 hover:scale-105 hover:bg-white/30 backdrop-blur-sm gap-2 min-w-[120px] px-4 py-2 rounded-lg text-sm font-medium"
+        )}>
         <span>{state}</span>
         <ChevronUpIcon
           aria-hidden='true'

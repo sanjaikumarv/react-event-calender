@@ -1,18 +1,21 @@
 "use client";
 
 import { Dispatch, SetStateAction, useState } from "react";
-import ChevronUpIcon from "./ChevronUpIcon";
+import clsx from "clsx";
+import { ChevronUpIcon } from "./icons";
 
 interface MonthFilterProps {
   state: number;
   setState: Dispatch<SetStateAction<number>>;
   data: string[];
+  monthFilterInputStyle?: string;
 }
 
 export default function MonthFilter({
   state,
   setState,
   data,
+  monthFilterInputStyle,
 }: MonthFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -20,13 +23,18 @@ export default function MonthFilter({
     <div className='relative'>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className='bg-white/20 hover:bg-white/30 backdrop-blur-sm px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 flex items-center gap-2 min-w-[120px] justify-between'>
+        className={clsx(
+          "transition-all flex items-center justify-between",
+          monthFilterInputStyle ||
+            "bg-white/20 duration-200 hover:scale-105  hover:bg-white/30 backdrop-blur-sm gap-2 min-w-[120px] px-4 py-2 rounded-lg text-sm font-medium"
+        )}>
         <span>{data[state]}</span>
         <ChevronUpIcon
           aria-hidden='true'
-          className={`w-4 h-4 transition-transform ${
-            isOpen ? "rotate-180" : ""
-          }`}
+          className={clsx(
+            "w-4 h-4 transition-transform",
+            isOpen && "rotate-180"
+          )}
         />
       </button>
 
