@@ -13,23 +13,46 @@ import { memo, useMemo, useState } from "react";
 import clsx from "clsx";
 import MonthFilter from "./MonthFilter";
 import YearFilter from "./YearFilter";
-
 export type EventItem = {
-  [key: string]: string | undefined;
   title: string;
   type?: string;
   startDate?: string;
   endDate?: string;
   date?: string;
   description?: string;
+  bgColor?: string; // <-- merged from heading
+  titleColor?: string; // <-- merged from heading
 };
 
-interface Heading {
+export type Heading = {
   title: string;
   bgColor: string;
   titleColor: string;
-}
+};
+
 export type EventGroups = EventItem[][];
+
+export type CalendarProps = {
+  onDateClick: (date: string) => void;
+  selectedDate: string;
+  data: EventGroups | EventItem[];
+  headings: Record<string, Heading>;
+  dataType?: "NESTED_ARRAY" | "ARRAY";
+  scheduledEvents?: boolean;
+  categories?: boolean;
+  yearFilters?: number[];
+  styles?: {
+    calendarHeadingBgColor?: string;
+    selectedDateBgColor?: string;
+    border?: string;
+    layout?: string;
+    height?: string;
+    width?: string;
+  };
+  buttonStyle?: string;
+  monthFilterInputStyle?: string;
+  yearFilterInputStyle?: string;
+};
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const months = [
@@ -70,29 +93,7 @@ function Calendar({
   buttonStyle,
   monthFilterInputStyle,
   yearFilterInputStyle,
-}: {
-  onDateClick: (date: string) => void;
-  dataType?: "NESTED_ARRAY" | "ARRAY";
-  selectedDate: string;
-  categories?: boolean;
-  headings: {
-    [key: string]: Heading;
-  };
-  scheduledEvents?: boolean;
-  data: EventGroups | EventItem[];
-  yearFilters?: number[];
-  styles?: {
-    calendarHeadingBgColor?: string;
-    selectedDateBgColor?: string;
-    border?: string;
-    layout?: string;
-    height?: string;
-    width?: string;
-  };
-  monthFilterInputStyle?: string;
-  yearFilterInputStyle?: string;
-  buttonStyle?: string;
-}) {
+}: CalendarProps) {
   const yearFilterData = useMemo(
     () =>
       yearFilters.length > 0
@@ -130,62 +131,52 @@ function Calendar({
     () => getDay(firstDayOfMonth),
     [firstDayOfMonth]
   );
+  function handleEventInsert(
+    event: EventItem,
+    map: Record<string, EventItem[]>,
+    colorData: Partial<Heading>
+  ) {
+    if (event.date) {
+      const d = event.date.slice(0, 10);
+      map[d] = map[d] || [];
+      map[d].push({ ...event, ...colorData });
+    } else if (event.startDate && event.endDate) {
+      const start = event.startDate.slice(0, 10);
+      const end = event.endDate.slice(0, 10);
+
+      eachDayOfInterval({
+        start: parseISO(start),
+        end: parseISO(end),
+      }).forEach((day) => {
+        const d = format(day, "yyyy-MM-dd");
+        map[d] = map[d] || [];
+        map[d].push({ ...event, ...colorData });
+      });
+    }
+  }
 
   const eventLookup = () => {
     const map: Record<string, EventItem[]> = {};
 
     if (!Array.isArray(data)) return map;
-    if (dataType === "NESTED_ARRAY") {
-      console.log("nested array");
-      data.forEach((group: EventItem[], idx: number) => {
+
+    // NESTED ARRAY MODE (EventGroups)
+    if (dataType === "NESTED_ARRAY" && Array.isArray(data[0])) {
+      (data as EventGroups).forEach((group, idx) => {
         const colorData = Object.values(headings)[idx];
-        group.forEach((event: EventItem) => {
-          if (event.date) {
-            const d = event.date.slice(0, 10);
-            map[d] = map[d] || [];
 
-            map[d].push({ ...event, ...colorData });
-          } else if (event.startDate && event.endDate) {
-            const start = event.startDate.slice(0, 10);
-            const end = event.endDate.slice(0, 10);
-
-            const range = eachDayOfInterval({
-              start: parseISO(start),
-              end: parseISO(end),
-            });
-
-            range.forEach((day) => {
-              const d = format(day, "yyyy-MM-dd");
-              map[d] = map[d] || [];
-              map[d].push({ ...event, ...colorData });
-            });
-          }
+        group.forEach((event) => {
+          handleEventInsert(event, map, colorData);
         });
       });
     } else {
-      data.forEach((event: EventItem) => {
-        const colorData = headings[event.type];
-        if (event.date) {
-          const d = event.date.slice(0, 10);
-          map[d] = map[d] || [];
-          map[d].push({ ...event, ...colorData });
-        } else if (event.startDate && event.endDate) {
-          const start = event.startDate.slice(0, 10);
-          const end = event.endDate.slice(0, 10);
-
-          const range = eachDayOfInterval({
-            start: parseISO(start),
-            end: parseISO(end),
-          });
-
-          range.forEach((day) => {
-            const d = format(day, "yyyy-MM-dd");
-            map[d] = map[d] || [];
-            map[d].push({ ...event, ...colorData });
-          });
-        }
+      // FLAT ARRAY MODE
+      (data as EventItem[]).forEach((event) => {
+        const colorData = headings[event.type ?? ""] || {};
+        handleEventInsert(event, map, colorData);
       });
     }
+
     return map;
   };
 
@@ -444,8 +435,8 @@ const DisplayCurrentData = memo(function DisplayCurrentData({
   date,
 }: {
   event: EventItem;
-  headingColor: string;
-  titleColor: string;
+  headingColor?: string;
+  titleColor?: string;
   date: string;
 }) {
   const startSame = event.startDate?.slice(0, 10) === date;
