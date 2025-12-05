@@ -1,6 +1,6 @@
 {
   "name": "simple-event-calendar-react",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -26,8 +26,8 @@
     "react-dom": "^19.1.1"
   },
   "dependencies": {
-    "date-fns": "^2.30.0",
-    "lucide-react": "^0.539.0"
+    "clsx": "^2.1.1",
+    "date-fns": "^2.30.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.23",
